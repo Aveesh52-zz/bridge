@@ -9,9 +9,35 @@ const network = new Network("testnet","v3");
 const MaticNetwork = network.Matic;
 const MainNetwork = network.Main;
 
+const web3 = window.web3
+
+  if (window.ethereum) {
+    window.web3 = new Web3(window.ethereum)
+    window.ethereum.enable()
+  }
+  else if (window.web3) {
+    window.web3 = new Web3(window.web3.currentProvider)
+  }
+  else {
+    window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
+  }
 
 
-const Ropsten_Erc20Address = '0xec5c207897c4378658f52bccce0ea648d1f17d65'; 
+const accounts =  web3.eth.getAccounts();
+const from = accounts;
+
+console.log(accounts);
+
+
+
+const matic = new Matic({
+  maticProvider: web3,
+  parentProvider: web3,
+  rootChain: MainNetwork.Contracts.RootChain,
+  withdrawManager: MainNetwork.Contracts.WithdrawManagerProxy,
+  depositManager: MainNetwork.Contracts.DepositManagerProxy,
+  registry: MainNetwork.Contracts.Registry  
+  }); 
 
   
 
@@ -33,46 +59,6 @@ const formValid = ({ formErrors, ...rest }) => {
 };
 
 class App extends Component {
-
-  async componentWillMount() {
-    await this.loadWeb3()
-    await this.loadBlockchainData()
-  }
-
-  async loadWeb3() {
-    if (window.ethereum) {
-      window.web3 = new Web3(window.ethereum)
-      await window.ethereum.enable()
-    }
-    else if (window.web3) {
-      window.web3 = new Web3(window.web3.currentProvider)
-    }
-    else {
-      window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
-    }
-  }
-
-  async loadBlockchainData() {
-    const web3 = window.web3
-    // Load account
-    const accounts = await web3.eth.getAccounts();
-    console.log(accounts);
-    const from = accounts;
-     
-  const matic = new Matic({
-    maticProvider: this.web3,
-    parentProvider: this.web3,
-    rootChain: MainNetwork.Contracts.RootChain,
-    withdrawManager: MainNetwork.Contracts.WithdrawManagerProxy,
-    depositManager: MainNetwork.Contracts.DepositManagerProxy,
-    registry: MainNetwork.Contracts.Registry  
-    }); 
-  }
-  
- 
-  
-
-
 
   constructor(props) {  
     super(props);
@@ -103,7 +89,7 @@ class App extends Component {
     }
 
     let amount = this.state.amount;
-    let token = Ropsten_Erc20Address;
+    let token = this.state.tokenaddress;
       matic
     .approveERC20TokensForDeposit(token, amount, {
       from,
@@ -133,7 +119,7 @@ class App extends Component {
     switch (name) {
       case "tokenaddress":
         formErrors.tokenaddress =
-          value.length < 3 ? "minimum 3 characaters required" : "";
+                  value.length < 3 ? "minimum 3 characaters required" : "";
         break;
       case "amount":
         formErrors.amount =
@@ -152,7 +138,7 @@ class App extends Component {
     return (
       <div className="wrapper">
         <div className="form-wrapper">
-          <h1>Create Account</h1>
+          <h1>Deposit</h1>
           <form onSubmit={this.handleSubmit} noValidate>
             <div className="tokenaddress">
               <label htmlFor="tokenaddress">Enter token address</label>
